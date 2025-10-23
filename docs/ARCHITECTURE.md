@@ -6,7 +6,7 @@ This document provides a high-level blueprint for the realtime quality inspectio
 - **Inspection Session**: Represents a monitoring context that aggregates frames from RTSP streams, maintains detector/classifier states, and yields inspection results.
 - **Detection Result**: Output of the YOLO segmentation model including instance masks and metadata.
 - **Classification Result**: Output of the MobileNet classifier for cropped detections.
-- **Inspection Verdict**: Business rule evaluation that consolidates detection and classification signals into `OK` or `NG` outcomes.
+- **Inspection Verdict**: Business rule evaluation that consolidates detection and classification signals into `OK` or `NG` outcomes. The default implementation is the `ThresholdBusinessRulesEngine`, which evaluates confidence thresholds and label allow-lists to determine the final verdict, surfaces the triggering label/source/confidence as structured metadata, and supports per-label `LabelPolicy` overrides for bespoke messaging, global thresholds, and source-specific constraints.
 
 ## Clean Architecture Layers
 
@@ -52,7 +52,9 @@ This document provides a high-level blueprint for the realtime quality inspectio
 - **`backend/application`**: Use-case orchestrators encapsulating inspection workflows, retraining pipelines, and inference scheduling.
 - **`backend/domain`**: Pure business logic, entities, and service interfaces (ports).
 - **`backend/infrastructure`**: Adapters for ML models, storage, RTSP streams, and deployment targets.
-- **`backend/interfaces`**: Interface layer for API schemas, DTOs, and CLI commands.
+- **`backend/interfaces`**: Interface layer for API schemas, DTOs, and CLI commands. Includes
+  Pydantic models such as `InspectionVerdictDTO` to expose structured verdict metadata to
+  clients.
 - **`backend/core`**: Shared utilities (configuration, logging, dependency injection containers).
 
 ### Frontend (`frontend/`)
