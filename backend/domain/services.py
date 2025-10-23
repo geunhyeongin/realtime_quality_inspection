@@ -1,12 +1,4 @@
-"""Domain services encapsulating business rules for inspection results.
-
-This module currently provides a :class:`ThresholdBusinessRulesEngine` that
-consolidates detection and classification signals into a domain
-``InspectionVerdict``. The engine remains intentionally small so that
-alternative strategies (for example, a fuzzy rules engine or model-based
-policy) can be introduced without rewriting the surrounding application
-workflow.
-"""
+"""Domain services encapsulating business rules for inspection results."""
 
 from __future__ import annotations
 
@@ -32,18 +24,8 @@ class ThresholdBusinessRulesEngine:
     confidence_threshold: float = 0.5
     allow_unknown: bool = True
     ok_reason: str = "All detections passed inspection."
-    ng_reason_template: str = (
-        "Detected NG label: {label} ({confidence:.2f}) via {source}"
-    )
-    unknown_reason_template: str = (
-        "Unknown label detected: {label} ({confidence:.2f}) via {source}"
-    )
-
-    def __post_init__(self) -> None:
-        """Normalise label collections to frozen sets for deterministic behaviour."""
-
-        object.__setattr__(self, "ng_labels", frozenset(self.ng_labels))
-        object.__setattr__(self, "ok_labels", frozenset(self.ok_labels))
+    ng_reason_template: str = "Detected NG label: {label} ({confidence:.2f})"
+    unknown_reason_template: str = "Unknown label detected: {label}"
 
     def evaluate(
         self,
@@ -52,68 +34,31 @@ class ThresholdBusinessRulesEngine:
     ) -> InspectionVerdict:
         """Combine detection and classification signals into a verdict."""
 
-        sorted_classifications = sorted(
-            classifications,
-            key=lambda result: result.confidence,
-            reverse=True,
-        )
-        for result in sorted_classifications:
-            verdict = self._evaluate_label(
-                label=result.label,
-                confidence=result.confidence,
-                source="classification",
-            )
+        for result in classifications:
+            verdict = self._evaluate_label(result.label, result.confidence)
             if verdict is not None:
                 return verdict
 
-        sorted_detections = sorted(
-            detections,
-            key=lambda detection: detection.confidence,
-            reverse=True,
-        )
-        for detection in sorted_detections:
-            verdict = self._evaluate_label(
-                label=detection.label,
-                confidence=detection.confidence,
-                source="detection",
-            )
+        for detection in detections:
+            verdict = self._evaluate_label(detection.label, detection.confidence)
             if verdict is not None:
                 return verdict
 
         return InspectionVerdict(status="OK", reason=self.ok_reason)
 
-    def _evaluate_label(
-        self,
-        *,
-        label: str,
-        confidence: float,
-        source: str,
-    ) -> InspectionVerdict | None:
+    def _evaluate_label(self, label: str, confidence: float) -> InspectionVerdict | None:
         """Determine if a single label warrants an ``NG`` verdict."""
 
         if label in self.ng_labels and confidence >= self.confidence_threshold:
             return InspectionVerdict(
                 status="NG",
-                reason=self.ng_reason_template.format(
-                    label=label,
-                    confidence=confidence,
-                    source=source,
-                ),
+                reason=self.ng_reason_template.format(label=label, confidence=confidence),
             )
 
         known_labels = self.ng_labels | self.ok_labels
-        if (
-            label not in known_labels
-            and not self.allow_unknown
-            and confidence >= self.confidence_threshold
-        ):
+        if label not in known_labels and not self.allow_unknown:
             return InspectionVerdict(
-                status="NG",
-                reason=self.unknown_reason_template.format(
-                    label=label,
-                    confidence=confidence,
-                    source=source,
-                ),
+                status="NG", reason=self.unknown_reason_template.format(label=label)
             )
 
         return None
