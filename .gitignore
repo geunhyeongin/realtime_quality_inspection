@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+*.sqlite3
+.DS_Store
+venv/
+.envrc
+.idea/
+.vscode/
+*.ui
+models/checkpoints/
+logs/
+artifacts/

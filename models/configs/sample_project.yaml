@@ -1,0 +1,26 @@
+# Sample configuration for a project-specific training pipeline.
+project: sample_project
+labels:
+  - ok
+  - ng
+  - defect_a
+  - defect_b
+paths:
+  dataset_root: data/sample_project
+  artifacts_root: artifacts/sample_project
+models:
+  detector:
+    name: yolov8-seg
+    pretrained: pretrained/yolov8s-seg.pt
+    hyperparameters:
+      epochs: 50
+      batch_size: 8
+  classifier:
+    name: mobilenet_v3_small
+    pretrained: pretrained/mobilenet_v3_small.pth
+    hyperparameters:
+      epochs: 30
+      batch_size: 32
+business_rules:
+  ng_threshold: 0.2
+  allow_unknown: true
