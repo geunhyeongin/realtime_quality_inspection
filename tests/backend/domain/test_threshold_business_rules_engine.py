@@ -30,6 +30,9 @@ def test_engine_returns_ng_for_high_confidence_ng_label(engine: ThresholdBusines
 
     assert verdict.status == "NG"
     assert "defect" in verdict.reason
+    assert verdict.label == "defect"
+    assert verdict.confidence == pytest.approx(0.95)
+    assert verdict.source == "detection"
 
 
 def test_engine_treats_unknown_labels_as_ng_when_disallowed(engine: ThresholdBusinessRulesEngine) -> None:
@@ -42,6 +45,9 @@ def test_engine_treats_unknown_labels_as_ng_when_disallowed(engine: ThresholdBus
 
     assert verdict.status == "NG"
     assert "Unknown label" in verdict.reason
+    assert verdict.label == "mystery"
+    assert verdict.confidence == pytest.approx(0.9)
+    assert verdict.source == "detection"
 
 
 def test_engine_returns_ok_when_all_labels_are_known_and_safe(engine: ThresholdBusinessRulesEngine) -> None:
@@ -54,3 +60,19 @@ def test_engine_returns_ok_when_all_labels_are_known_and_safe(engine: ThresholdB
 
     assert verdict.status == "OK"
     assert verdict.reason == engine.ok_reason
+
+
+def test_engine_returns_metadata_for_classification_results(engine: ThresholdBusinessRulesEngine) -> None:
+    """Classification-driven NG verdicts should include structured metadata."""
+
+    detections: list[DetectionResult] = []
+    classifications = [
+        ClassificationResult(label="defect", confidence=0.99, crop_id="crop-1")
+    ]
+
+    verdict = engine.evaluate(detections=detections, classifications=classifications)
+
+    assert verdict.status == "NG"
+    assert verdict.label == "defect"
+    assert verdict.confidence == pytest.approx(0.99)
+    assert verdict.source == "classification"
