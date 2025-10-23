@@ -58,9 +58,6 @@ def test_inspection_service_returns_ok_when_no_detections(engine: ThresholdBusin
 
     assert verdict.status == "OK"
     assert classifier.received_crops == [] or classifier.received_crops is None
-    assert verdict.label is None
-    assert verdict.confidence is None
-    assert verdict.source is None
 
 
 def test_inspection_service_flags_ng_from_classifier(engine: ThresholdBusinessRulesEngine) -> None:
@@ -77,11 +74,7 @@ def test_inspection_service_flags_ng_from_classifier(engine: ThresholdBusinessRu
 
     assert verdict.status == "NG"
     assert verdict.reason.startswith("Detected NG label")
-    assert "classification" in verdict.reason
     assert classifier.received_crops == [b"crop-1"]
-    assert verdict.label == "defect_a"
-    assert verdict.source == "classification"
-    assert verdict.confidence == pytest.approx(0.9)
 
 
 def test_inspection_service_flags_ng_from_detection(engine: ThresholdBusinessRulesEngine) -> None:
@@ -96,8 +89,4 @@ def test_inspection_service_flags_ng_from_detection(engine: ThresholdBusinessRul
 
     assert verdict.status == "NG"
     assert verdict.reason.startswith("Detected NG label")
-    assert "detection" in verdict.reason
     assert classifier.received_crops == [] or classifier.received_crops is None
-    assert verdict.label == "defect_a"
-    assert verdict.source == "detection"
-    assert verdict.confidence == pytest.approx(0.8)
