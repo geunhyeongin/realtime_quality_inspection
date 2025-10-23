@@ -76,3 +76,49 @@ def test_engine_returns_metadata_for_classification_results(engine: ThresholdBus
     assert verdict.label == "defect"
     assert verdict.confidence == pytest.approx(0.99)
     assert verdict.source == "classification"
+
+
+def test_engine_honors_label_specific_threshold_for_detection() -> None:
+    """Label-specific thresholds should override the global value for detections."""
+
+    engine = ThresholdBusinessRulesEngine(
+        ng_labels=frozenset({"chip_crack"}),
+        ok_labels=frozenset({"ok"}),
+        confidence_threshold=0.8,
+        label_thresholds={"chip_crack": 0.6},
+        allow_unknown=True,
+    )
+    detections = [
+        DetectionResult(label="chip_crack", confidence=0.65, mask=b"mask", crop=None)
+    ]
+    classifications: list[ClassificationResult] = []
+
+    verdict = engine.evaluate(detections=detections, classifications=classifications)
+
+    assert verdict.status == "NG"
+    assert verdict.label == "chip_crack"
+    assert verdict.confidence == pytest.approx(0.65)
+    assert verdict.source == "detection"
+
+
+def test_engine_uses_label_threshold_for_classification_results() -> None:
+    """Classification results should also use label-specific thresholds when defined."""
+
+    engine = ThresholdBusinessRulesEngine(
+        ng_labels=frozenset({"scratch"}),
+        ok_labels=frozenset(),
+        confidence_threshold=0.9,
+        label_thresholds={"scratch": 0.7},
+        allow_unknown=True,
+    )
+    detections: list[DetectionResult] = []
+    classifications = [
+        ClassificationResult(label="scratch", confidence=0.75, crop_id="crop-1")
+    ]
+
+    verdict = engine.evaluate(detections=detections, classifications=classifications)
+
+    assert verdict.status == "NG"
+    assert verdict.label == "scratch"
+    assert verdict.confidence == pytest.approx(0.75)
+    assert verdict.source == "classification"

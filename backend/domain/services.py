@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import FrozenSet, Iterable
+from typing import FrozenSet, Iterable, Mapping
 
 from backend.domain.entities import ClassificationResult, DetectionResult, InspectionVerdict
 
@@ -14,14 +14,16 @@ class ThresholdBusinessRulesEngine:
 
     The engine marks a frame as ``NG`` when either a detection or classification
     result matches one of the configured ``ng_labels`` with a confidence score
-    above ``confidence_threshold``. Labels that are not present in either the
-    ``ng_labels`` or ``ok_labels`` collections are treated as unknown and can be
-    flagged as ``NG`` depending on ``allow_unknown``.
+    above ``confidence_threshold``. Optional ``label_thresholds`` can override
+    the global threshold for specific labels. Labels that are not present in
+    either the ``ng_labels`` or ``ok_labels`` collections are treated as
+    unknown and can be flagged as ``NG`` depending on ``allow_unknown``.
     """
 
     ng_labels: FrozenSet[str]
     ok_labels: FrozenSet[str]
     confidence_threshold: float = 0.5
+    label_thresholds: Mapping[str, float] | None = None
     allow_unknown: bool = True
     ok_reason: str = "All detections passed inspection."
     ng_reason_template: str = "Detected NG label: {label} ({confidence:.2f})"
@@ -59,16 +61,22 @@ class ThresholdBusinessRulesEngine:
     ) -> InspectionVerdict | None:
         """Determine if a single label warrants an ``NG`` verdict."""
 
-        if label in self.ng_labels and confidence >= self.confidence_threshold:
-            return InspectionVerdict(
-                status="NG",
-                reason=self.ng_reason_template.format(
-                    label=label, confidence=confidence, source=source
-                ),
-                label=label,
-                confidence=confidence,
-                source=source,
+        if label in self.ng_labels:
+            threshold = (
+                self.label_thresholds.get(label, self.confidence_threshold)
+                if self.label_thresholds is not None
+                else self.confidence_threshold
             )
+            if confidence >= threshold:
+                return InspectionVerdict(
+                    status="NG",
+                    reason=self.ng_reason_template.format(
+                        label=label, confidence=confidence, source=source
+                    ),
+                    label=label,
+                    confidence=confidence,
+                    source=source,
+                )
 
         known_labels = self.ng_labels | self.ok_labels
         if label not in known_labels and not self.allow_unknown:
