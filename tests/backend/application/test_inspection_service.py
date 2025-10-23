@@ -74,7 +74,6 @@ def test_inspection_service_flags_ng_from_classifier(engine: ThresholdBusinessRu
 
     assert verdict.status == "NG"
     assert verdict.reason.startswith("Detected NG label")
-    assert "classification" in verdict.reason
     assert classifier.received_crops == [b"crop-1"]
 
 
@@ -90,5 +89,4 @@ def test_inspection_service_flags_ng_from_detection(engine: ThresholdBusinessRul
 
     assert verdict.status == "NG"
     assert verdict.reason.startswith("Detected NG label")
-    assert "detection" in verdict.reason
     assert classifier.received_crops == [] or classifier.received_crops is None

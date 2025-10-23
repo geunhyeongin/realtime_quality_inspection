@@ -6,7 +6,7 @@ This document provides a high-level blueprint for the realtime quality inspectio
 - **Inspection Session**: Represents a monitoring context that aggregates frames from RTSP streams, maintains detector/classifier states, and yields inspection results.
 - **Detection Result**: Output of the YOLO segmentation model including instance masks and metadata.
 - **Classification Result**: Output of the MobileNet classifier for cropped detections.
-- **Inspection Verdict**: Business rule evaluation that consolidates detection and classification signals into `OK` or `NG` outcomes. The default implementation is the `ThresholdBusinessRulesEngine`, which evaluates confidence thresholds and label allow-lists to determine the final verdict and supports per-label `LabelPolicy` overrides for bespoke messaging and thresholds.
+- **Inspection Verdict**: Business rule evaluation that consolidates detection and classification signals into `OK` or `NG` outcomes. The default implementation is the `ThresholdBusinessRulesEngine`, which evaluates confidence thresholds and label allow-lists to determine the final verdict.
 
 ## Clean Architecture Layers
 
