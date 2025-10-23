@@ -52,7 +52,9 @@ This document provides a high-level blueprint for the realtime quality inspectio
 - **`backend/application`**: Use-case orchestrators encapsulating inspection workflows, retraining pipelines, and inference scheduling.
 - **`backend/domain`**: Pure business logic, entities, and service interfaces (ports).
 - **`backend/infrastructure`**: Adapters for ML models, storage, RTSP streams, and deployment targets.
-- **`backend/interfaces`**: Interface layer for API schemas, DTOs, and CLI commands.
+- **`backend/interfaces`**: Interface layer for API schemas, DTOs, and CLI commands. Includes
+  Pydantic models such as `InspectionVerdictDTO` to expose structured verdict metadata to
+  clients.
 - **`backend/core`**: Shared utilities (configuration, logging, dependency injection containers).
 
 ### Frontend (`frontend/`)
