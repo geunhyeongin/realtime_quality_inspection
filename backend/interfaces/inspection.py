@@ -30,19 +30,7 @@ class InspectionVerdictDTO:
             source=verdict.source,
         )
 
-    def model_dump(self, *, exclude_none: bool = False) -> Dict[str, Any]:
-        """Serialize the DTO to a plain dictionary for API responses.
+    def model_dump(self) -> Dict[str, Any]:
+        """Serialize the DTO to a plain dictionary for API responses."""
 
-        Parameters
-        ----------
-        exclude_none:
-            When ``True`` optional fields whose value is ``None`` will be
-            omitted from the resulting dictionary. This mirrors the behaviour of
-            Pydantic's ``model_dump`` helper and keeps wire responses compact for
-            OK verdicts that do not provide trigger metadata.
-        """
-
-        payload = asdict(self)
-        if not exclude_none:
-            return payload
-        return {key: value for key, value in payload.items() if value is not None}
+        return asdict(self)

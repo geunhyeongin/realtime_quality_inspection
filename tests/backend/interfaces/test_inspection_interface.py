@@ -52,16 +52,3 @@ def test_inspection_verdict_dto_supports_missing_metadata() -> None:
         "confidence": None,
         "source": None,
     }
-
-
-def test_inspection_verdict_dto_model_dump_can_exclude_none_fields() -> None:
-    """DTO serialization should support omitting ``None`` values."""
-
-    verdict = InspectionVerdict(status="OK", reason="All detections passed inspection.")
-
-    dto = InspectionVerdictDTO.from_domain(verdict)
-
-    assert dto.model_dump(exclude_none=True) == {
-        "status": "OK",
-        "reason": verdict.reason,
-    }
